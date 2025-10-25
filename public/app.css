@@ -1,0 +1,707 @@
+/* Сброс стилей */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+    line-height: 1.6;
+}
+
+#app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    grid-template-areas: "stats stats" "inventory game";
+    grid-template-columns: 300px 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 20px;
+    min-height: 100vh;
+}
+
+
+/* Панель статистик */
+
+.stats-panel {
+    grid-area: stats;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.stat-group {
+    display: flex;
+    gap: 20px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+}
+
+.stat-icon {
+    font-size: 1.2em;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.stat-value {
+    color: #333;
+    font-size: 1.1em;
+    min-width: 30px;
+    text-align: right;
+}
+
+.debt-warning {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ======= Главное меню ======= */
+
+.menu-root {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: #000;
+}
+
+.menu-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.5) contrast(1.05) saturate(1.1);
+}
+
+.menu-overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: #fff;
+    display: grid;
+    gap: 1rem;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 16px;
+    backdrop-filter: blur(4px);
+}
+
+.menu-title {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.menu-buttons {
+    display: flex;
+    gap: .75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.menu-hint {
+    opacity: .85;
+    font-size: .9rem;
+    margin: 0;
+}
+
+
+/* Кнопки */
+
+.btn {
+    padding: .7rem 1.1rem;
+    border-radius: 12px;
+    border: 1px solid #8885;
+    color: #fff;
+    background: #3339;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #444b;
+}
+
+.btn.primary {
+    background: #8b5cf6;
+    border-color: #a78bfa;
+}
+
+.btn.primary:hover {
+    background: #7c3aed;
+}
+
+.btn.ghost {
+    background: transparent;
+    border-color: #fff3;
+}
+
+
+/* ======= Игровая сцена ======= */
+
+.app-root {
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+.hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: .8rem 1rem;
+    background: #111;
+    color: #eee;
+}
+
+.hud .stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.hud .inv {
+    opacity: .9;
+}
+
+.card {
+    max-width: 860px;
+    margin: 2rem auto;
+    padding: 1.2rem;
+    background: #1a1a1a;
+    color: #eee;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+}
+
+.card img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+    margin-bottom: .9rem;
+}
+
+.card h2 {
+    margin: .2rem 0 .4rem;
+}
+
+.choices {
+    display: flex;
+    gap: .6rem;
+    flex-wrap: wrap;
+    margin-top: .8rem;
+}
+
+.choice {
+    padding: .6rem .9rem;
+    border-radius: 10px;
+    border: 1px solid #fff2;
+    background: #2a2a2a;
+    color: #fff;
+    cursor: pointer;
+}
+
+.choice:hover {
+    background: #333;
+}
+
+.choice:focus,
+.btn:focus {
+    outline: 2px solid #a78bfa;
+    outline-offset: 2px;
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.turn-counter {
+    margin-left: 10px;
+}
+
+
+/* Панель инвентаря */
+
+.inventory-panel {
+    grid-area: inventory;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.inventory-header {
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.inventory-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inventory-item {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+    font-size: 0.9em;
+}
+
+.inventory-empty {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+
+/* Игровая область */
+
+.game-area {
+    grid-area: game;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+
+/* Карточка события */
+
+.event-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-2px);
+}
+
+.event-image {
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(45deg, #f0f2f5, #e4e7eb);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 3em;
+}
+
+.event-image.has-image {
+    background-image: var(--image-url);
+}
+
+.event-content {
+    padding: 30px;
+}
+
+.event-title {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: 700;
+}
+
+.event-text {
+    font-size: 1.1em;
+    line-height: 1.7;
+    margin-bottom: 30px;
+    color: #555;
+}
+
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.choice-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.choice-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.choice-btn:hover:before {
+    left: 100%;
+}
+
+.choice-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.choice-btn:active {
+    transform: translateY(0);
+}
+
+.choice-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.choice-cost {
+    color: #ffeb3b;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.choice-benefit {
+    color: #4caf50;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+
+/* Экран смерти */
+
+.death-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+}
+
+.death-content {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.death-content h2 {
+    color: #d32f2f;
+    margin-bottom: 15px;
+    font-size: 2em;
+}
+
+.death-content p {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 1.1em;
+}
+
+.restart-btn {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.restart-btn:hover {
+    background: #45a049;
+}
+
+
+/* Экран загрузки */
+
+.loading-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border-radius: 15px;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-content p {
+    color: #666;
+    font-size: 1.1em;
+}
+
+
+/* Утилитарные классы */
+
+.hidden {
+    display: none !important;
+}
+
+
+/* Адаптивность */
+
+@media (max-width: 768px) {
+    #app {
+        grid-template-areas: "stats" "inventory" "game";
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+        padding: 10px;
+        gap: 15px;
+    }
+    .stats-panel {
+        padding: 15px;
+    }
+    .stat-group {
+        gap: 15px;
+    }
+    .stat {
+        gap: 3px;
+    }
+    .inventory-panel {
+        padding: 15px;
+    }
+    .event-content {
+        padding: 20px;
+    }
+    .event-title {
+        font-size: 1.5em;
+    }
+    .event-text {
+        font-size: 1em;
+    }
+    .choice-btn {
+        padding: 12px 15px;
+        font-size: 0.95em;
+    }
+    .death-content {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+    .death-content h2 {
+        font-size: 1.7em;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-panel {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .stat-group {
+        justify-content: center;
+    }
+    .location-info {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+:root {
+    --space-1: .5rem;
+    --space-2: .75rem;
+    --space-3: 1rem;
+    --space-4: 1.5rem;
+    --radius: 14px;
+    --maxw-card: 720px;
+    /* было 860, сузили для мобилы */
+    --tap: 44px;
+    /* минимальный тач-таргет */
+    --hud-h: 52px;
+}
+
+
+/* Правильная высота для мобилок с вырезами (notch) */
+
+html,
+body {
+    height: 100%;
+    background: #0b0b0b;
+}
+
+.app-root,
+.menu-root {
+    min-height: var(--vh, 100dvh);
+    /* fallback для старых iOS */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-2));
+}
+
+
+/* Меню */
+
+.menu-overlay {
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius);
+}
+
+.menu-title {
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+}
+
+.menu-buttons .btn {
+    min-height: var(--tap);
+    min-width: 44%;
+}
+
+
+/* HUD для узких экранов */
+
+.hud {
+    gap: var(--space-2);
+    padding: .6rem .8rem;
+    flex-wrap: wrap;
+    row-gap: .4rem;
+}
+
+.hud .stats span {
+    font-size: .95rem;
+}
+
+.btn.ghost {
+    min-height: var(--tap);
+}
+
+
+/* Карточка события */
+
+.card {
+    max-width: var(--maxw-card);
+    margin: var(--space-3) auto;
+    padding: var(--space-3);
+    border-radius: var(--radius);
+}
+
+.card h2 {
+    font-size: clamp(1.05rem, 2.8vw, 1.25rem);
+}
+
+.card p {
+    line-height: 1.5;
+    font-size: 1rem;
+}
+
+
+/* Кнопки выбора: крупные тач-зоны */
+
+.choices {
+    gap: var(--space-2);
+}
+
+.choice {
+    min-height: var(--tap);
+    padding: .7rem 1rem;
+    border-radius: calc(var(--radius) - 4px);
+    font-size: 1rem;
+    touch-action: manipulation;
+}
+
+
+/* Видео на фоне: эконом режим на мобилках */
+
+@media (max-width: 480px) {
+    .menu-video {
+        filter: brightness(0.55) contrast(1.05);
+    }
+    .hud .stats span {
+        font-size: .9rem;
+    }
+}
+
+
+/* Предпочтение «меньше анимаций» */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+    .menu-video {
+        animation: none !important;
+    }
+}

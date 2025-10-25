@@ -1,0 +1,29 @@
+{
+    "id": "main.prologue.004",
+    "type": "main",
+    "title": "Пролог: Последние приготовления",
+    "image": "/assets/main/prologue-004.jpg",
+    "text": "Собираешь снаряжение и проверяешь оружие. Приключение обещает быть опасным, но награда стоит риска. Маркус указал встречу в деревне у большого тракта — там начнутся поиски.",
+    "choices": [{
+        "label": "Далее",
+        "next": "auto"
+    }],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": null,
+        "cooldown": 0,
+        "once": true,
+        "only_in_location": "main",
+        "child_roll": null
+    },
+    "tags": ["story", "prologue"],
+    "version": 1
+}

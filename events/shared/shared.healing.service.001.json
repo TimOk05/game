@@ -1,0 +1,38 @@
+{
+    "id": "shared.healing.service.001",
+    "type": "shared",
+    "title": "Услуги целителя",
+    "image": "/assets/shared/healing-service.jpg",
+    "text": "Местный целитель предлагает восстановить ваши силы за определенную плату. Его травяные настои известны своей эффективностью, но стоят недешево.",
+    "choices": [{
+            "label": "Полное исцеление (50 золотых)",
+            "next": "shared.healing.full.001"
+        },
+        {
+            "label": "Легкое лечение (20 золотых)",
+            "next": "shared.healing.light.001"
+        },
+        {
+            "label": "Отказаться от услуг",
+            "next": "auto"
+        }
+    ],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": null,
+        "cooldown": 3,
+        "once": false,
+        "only_in_location": null,
+        "child_roll": null
+    },
+    "tags": ["service", "healing", "merchant", "health"],
+    "version": 1
+}

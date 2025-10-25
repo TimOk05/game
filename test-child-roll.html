@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Child Roll</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        
+        .event-result {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .child-event {
+            border-left-color: #28a745;
+        }
+        
+        .parent-event {
+            border-left-color: #ffc107;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+        
+        .stat {
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎲 Test Child Roll Mechanics</h1>
+
+    <div class="test-section">
+        <h2>📋 Tavern Events Test</h2>
+        <button onclick="testTavernEvents()">Test Tavern Child Roll</button>
+        <div id="tavern-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔄 Multiple Tests</h2>
+        <button onclick="runMultipleTests()">Run 10 Child Roll Tests</button>
+        <div id="multiple-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Statistics</h2>
+        <button onclick="showStatistics()">Show Child Roll Statistics</button>
+        <div id="stats-results"></div>
+    </div>
+
+    <script>
+        async function testTavernEvents() {
+            const results = document.getElementById('tavern-results');
+            results.innerHTML = '<p>Тестирование событий таверны...</p>';
+
+            let html = '<h3>Результаты тестов таверны:</h3>';
+
+            try {
+                // Состояние для деревни
+                const state = {
+                    location: "village",
+                    turn: 1,
+                    seenIds: [],
+                    cooldowns: {},
+                    stats: {
+                        hp: 20,
+                        damage: 3,
+                        fame: 0,
+                        gold: 10,
+                        items: []
+                    }
+                };
+
+                // Запрашиваем событие таверны
+                const response = await fetch('/api/next.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        state
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const event = result.data.event;
+                    const meta = event.meta || {};
+
+                    html += `<div class="event-result ${meta.was_child_roll ? 'child-event' : 'parent-event'}">
+                        <h4>${meta.was_child_roll ? '🎲 Child Event' : '📋 Base Event'}</h4>
+                        <strong>${event.title}</strong><br>
+                        <em>ID: ${event.id}</em><br>
+                        <strong>Effects:</strong> ${JSON.stringify(event.effects)}<br>
+                        <small>
+                            Child Roll: ${meta.was_child_roll ? 'Yes' : 'No'} | 
+                            Original: ${meta.original_event_id || 'N/A'} | 
+                            Child: ${meta.child_event_id || 'N/A'}
+                        </small>
+                    </div>`;
+
+                    // Показываем статистики
+                    html += `<div class="stats">
+                        <div class="stat">HP: ${result.data.state.stats.hp}</div>
+                        <div class="stat">Gold: ${result.data.state.stats.gold}</div>
+                        <div class="stat">Fame: ${result.data.state.stats.fame}</div>
+                        <div class="stat">Turn: ${result.data.state.turn}</div>
+                    </div>`;
+
+                } else {
+                    html += `<div class="error">❌ Error: ${result.error}</div>`;
+                }
+
+            } catch (error) {
+                html += `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+
+            results.innerHTML = html;
+        }
+
+        async function runMultipleTests() {
+            const results = document.getElementById('multiple-results');
+            results.innerHTML = '<p>Запуск множественных тестов...</p>';
+
+            let html = '<h3>Результаты 10 тестов:</h3>';
+
+            const testResults = {
+                childRolls: 0,
+                baseEvents: 0,
+                events: []
+            };
+
+            for (let i = 0; i < 10; i++) {
+                try {
+                    const state = {
+                        location: "village",
+                        turn: i + 1,
+                        seenIds: [],
+                        cooldowns: {},
+                        stats: {
+                            hp: 20,
+                            damage: 3,
+                            fame: 0,
+                            gold: 10,
+                            items: []
+                        }
+                    };
+
+                    const response = await fetch('/api/next.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            state
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const event = result.data.event;
+                        const meta = event.meta || {};
+
+                        if (meta.was_child_roll) {
+                            testResults.childRolls++;
+                        } else {
+                            testResults.baseEvents++;
+                        }
+
+                        testResults.events.push({
+                            id: event.id,
+                            title: event.title,
+                            wasChildRoll: meta.was_child_roll,
+                            originalId: meta.original_event_id,
+                            effects: event.effects
+                        });
+
+                        html += `<div class="event-result ${meta.was_child_roll ? 'child-event' : 'parent-event'}">
+                            <strong>Test ${i + 1}:</strong> ${event.title} 
+                            ${meta.was_child_roll ? '(🎲 Child)' : '(📋 Base)'}
+                        </div>`;
+                    }
+
+                } catch (error) {
+                    html += `<div class="error">Test ${i + 1} failed: ${error.message}</div>`;
+                }
+            }
+
+            html += `<div class="info">
+                <h4>📊 Статистика:</h4>
+                <p>Child Rolls: ${testResults.childRolls}/10 (${(testResults.childRolls/10*100).toFixed(1)}%)</p>
+                <p>Base Events: ${testResults.baseEvents}/10 (${(testResults.baseEvents/10*100).toFixed(1)}%)</p>
+            </div>`;
+
+            results.innerHTML = html;
+        }
+
+        async function showStatistics() {
+            const results = document.getElementById('stats-results');
+            results.innerHTML = '<p>Анализ статистики...</p>';
+
+            let html = '<h3>📊 Анализ Child Roll механики:</h3>';
+
+            try {
+                // Получаем информацию о событиях таверны
+                const listResponse = await fetch('/api/list.php?type=village');
+                const listData = await listResponse.json();
+
+                if (listData.success) {
+                    const tavernEvents = listData.data.events.filter(e => e.id.includes('tavern'));
+
+                    html += '<h4>🎪 События таверны:</h4>';
+                    tavernEvents.forEach(event => {
+                        html += `<div class="event-result">
+                            <strong>${event.id}</strong><br>
+                            <em>${event.title}</em><br>
+                            <small>Rules: ${JSON.stringify(event.rules)}</small>
+                        </div>`;
+                    });
+
+                    // Тестируем базовое событие таверны
+                    const tavernResponse = await fetch('/api/get.php?id=village.tavern');
+                    const tavernData = await tavernResponse.json();
+
+                    if (tavernData.success) {
+                        const tavern = tavernData.data;
+                        html += '<h4>🏠 Базовое событие таверны:</h4>';
+                        html += `<div class="event-result parent-event">
+                            <strong>${tavern.title}</strong><br>
+                            <em>Child Roll Pool: ${JSON.stringify(tavern.rules.child_roll?.pool || [])}</em><br>
+                            <em>Child Roll Chance: ${tavern.rules.child_roll?.chance || 'N/A'}</em>
+                        </div>`;
+                    }
+
+                } else {
+                    html += `<div class="error">❌ Error loading events: ${listData.error}</div>`;
+                }
+
+            } catch (error) {
+                html += `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+
+</html>

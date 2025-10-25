@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Example - Game Adventure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 Test Example - Game Adventure</h1>
+
+    <div class="test-section">
+        <h2>📋 API Endpoints Test</h2>
+        <button onclick="testAPI()">Test All APIs</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎮 Game State Test</h2>
+        <button onclick="testGameState()">Test Game Logic</button>
+        <div id="state-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Effect Normalization Test</h2>
+        <button onclick="testEffects()">Test Effect Processing</button>
+        <div id="effect-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🚀 Launch Game</h2>
+        <p>После всех тестов можно запустить игру:</p>
+        <button onclick="window.open('/public/index.html', '_blank')">🎯 Играть!</button>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('api-results');
+            results.innerHTML = '<p>Тестирование API...</p>';
+
+            let html = '<h3>Результаты тестов:</h3>';
+
+            try {
+                // Test 1: List events
+                const listResponse = await fetch('/api/list.php?type=village');
+                const listData = await listResponse.json();
+
+                if (listData.success) {
+                    html += `<div class="success">✅ GET /api/list.php - OK (${listData.data.count} events)</div>`;
+                } else {
+                    html += `<div class="error">❌ GET /api/list.php - Error: ${listData.error}</div>`;
+                }
+
+                // Test 2: Get specific event
+                const getResponse = await fetch('/api/get.php?id=village.tavern');
+                const getData = await getResponse.json();
+
+                if (getData.success) {
+                    html += `<div class="success">✅ GET /api/get.php - OK (${getData.data.title})</div>`;
+                } else {
+                    html += `<div class="error">❌ GET /api/get.php - Error: ${getData.error}</div>`;
+                }
+
+                // Test 3: Next event
+                const nextResponse = await fetch('/api/next.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        state: {
+                            location: "village",
+                            turn: 1,
+                            seenIds: [],
+                            cooldowns: {},
+                            stats: {
+                                hp: 20,
+                                damage: 3,
+                                fame: 0,
+                                gold: 10,
+                                items: []
+                            }
+                        }
+                    })
+                });
+                const nextData = await nextResponse.json();
+
+                if (nextData.success) {
+                    html += `<div class="success">✅ POST /api/next.php - OK (${nextData.data.event.title})</div>`;
+                    html += `<pre>${JSON.stringify(nextData.data.event, null, 2)}</pre>`;
+                } else {
+                    html += `<div class="error">❌ POST /api/next.php - Error: ${nextData.error}</div>`;
+                }
+
+            } catch (error) {
+                html += `<div class="error">❌ Network Error: ${error.message}</div>`;
+            }
+
+            results.innerHTML = html;
+        }
+
+        function testGameState() {
+            const results = document.getElementById('state-results');
+
+            // Test game state normalization
+            const testState = {
+                location: "main",
+                turn: 0,
+                seenIds: [],
+                cooldowns: {},
+                stats: {
+                    hp: 20,
+                    damage: 3,
+                    fame: 0,
+                    gold: 10,
+                    items: []
+                }
+            };
+
+            let html = '<h3>Game State Tests:</h3>';
+            html += `<div class="success">✅ Default state created</div>`;
+            html += `<pre>${JSON.stringify(testState, null, 2)}</pre>`;
+
+            // Test localStorage
+            try {
+                localStorage.setItem('testGameState', JSON.stringify(testState));
+                const loaded = JSON.parse(localStorage.getItem('testGameState'));
+
+                if (JSON.stringify(loaded) === JSON.stringify(testState)) {
+                    html += `<div class="success">✅ localStorage save/load works</div>`;
+                } else {
+                    html += `<div class="error">❌ localStorage data mismatch</div>`;
+                }
+
+                localStorage.removeItem('testGameState');
+            } catch (e) {
+                html += `<div class="error">❌ localStorage error: ${e.message}</div>`;
+            }
+
+            results.innerHTML = html;
+        }
+
+        function testEffects() {
+            const results = document.getElementById('effect-results');
+
+            // Test effect normalization logic (simplified version)
+            function normalizeEffect(value) {
+                if (typeof value === 'number') return value;
+                if (typeof value === 'string') {
+                    if (/^[+-]?\d+$/.test(value)) return parseInt(value, 10);
+                    const randomMatch = value.match(/^random:(-?\d+),(-?\d+)$/);
+                    if (randomMatch) {
+                        const min = parseInt(randomMatch[1], 10);
+                        const max = parseInt(randomMatch[2], 10);
+                        return Math.floor(Math.random() * (max - min + 1)) + min;
+                    }
+                    const chanceMatch = value.match(/^chance:([0-9.]+),(-?\d+),(-?\d+)$/);
+                    if (chanceMatch) {
+                        const chance = parseFloat(chanceMatch[1]);
+                        const success = parseInt(chanceMatch[2], 10);
+                        const failure = parseInt(chanceMatch[3], 10);
+                        return Math.random() <= chance ? success : failure;
+                    }
+                }
+                return 0;
+            }
+
+            let html = '<h3>Effect Normalization Tests:</h3>';
+
+            const testCases = [{
+                input: 10,
+                expected: 10,
+                name: 'Number'
+            }, {
+                input: "+8",
+                expected: 8,
+                name: 'Positive string'
+            }, {
+                input: "-5",
+                expected: -5,
+                name: 'Negative string'
+            }, {
+                input: "random:-5,5",
+                expected: "range -5 to 5",
+                name: 'Random range'
+            }, {
+                input: "chance:0.5,10,-10",
+                expected: "50% chance",
+                name: 'Chance effect'
+            }];
+
+            testCases.forEach(test => {
+                const result = normalizeEffect(test.input);
+
+                if (typeof test.expected === 'number') {
+                    if (result === test.expected) {
+                        html += `<div class="success">✅ ${test.name}: ${test.input} → ${result}</div>`;
+                    } else {
+                        html += `<div class="error">❌ ${test.name}: Expected ${test.expected}, got ${result}</div>`;
+                    }
+                } else {
+                    html += `<div class="success">✅ ${test.name}: ${test.input} → ${result} (${test.expected})</div>`;
+                }
+            });
+
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+
+</html>

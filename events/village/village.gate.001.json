@@ -1,0 +1,42 @@
+{
+    "id": "village.gate.001",
+    "type": "village",
+    "title": "Врата деревни",
+    "image": "/assets/village/gate-001.jpg",
+    "text": "Местные жители радушно встречают вас у ворот деревни. В воздухе витает аромат свежеиспеченного хлеба, а дети играют на центральной площади. Стражник кивает вам в знак приветствия.",
+    "choices": [{
+            "label": "Зайти в таверну 'Золотой кубок'",
+            "next": "village.tavern.entrance.001"
+        },
+        {
+            "label": "Поговорить со старейшиной",
+            "next": "village.elder.meeting.001"
+        },
+        {
+            "label": "Исследовать рыночную площадь",
+            "next": "village.market.browse.001"
+        },
+        {
+            "label": "Осмотреться по сторонам",
+            "next": "village.exploration.001"
+        }
+    ],
+    "effects": {
+        "hp": 5,
+        "damage": 0,
+        "fame": 1,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": null,
+        "cooldown": 0,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": null
+    },
+    "tags": ["village", "welcome", "social", "entrance"],
+    "version": 1
+}

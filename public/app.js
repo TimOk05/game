@@ -1,0 +1,768 @@
+/**
+ * Game Adventure - Simple SPA Game Engine
+ */
+
+// Аудио переменные
+let menuBgm, gameBgm;
+let audioUnlocked = false;
+
+// Разблокировка аудио для мобильных устройств
+function unlockAudioOnce() {
+    if (audioUnlocked) return;
+    const tryPlay = async(a) => {
+        try {
+            await a.play();
+            a.pause();
+            a.currentTime = 0;
+        } catch {}
+    };
+    tryPlay(menuBgm);
+    tryPlay(gameBgm);
+    audioUnlocked = true;
+}
+
+// Инициализация аудио
+function initAudio() {
+    menuBgm = new Audio('/assets/media/menu-campfire.mp3');
+    gameBgm = new Audio('/assets/media/game-ambient.mp3');
+    menuBgm.loop = true;
+    gameBgm.loop = true;
+    menuBgm.volume = 0.3;
+    gameBgm.volume = 0.2;
+}
+
+// Управление музыкой
+function startMenuBgm() {
+    if (menuBgm) {
+        gameBgm ? .pause();
+        menuBgm.play().catch(() => {});
+    }
+}
+
+function startGameBgm() {
+    if (gameBgm) {
+        menuBgm ? .pause();
+        gameBgm.play().catch(() => {});
+    }
+}
+
+function stopAllBgm() {
+    menuBgm ? .pause();
+    gameBgm ? .pause();
+}
+
+class GameEngine {
+    constructor() {
+        this.apiBase = '/api/';
+        this.state = this.loadState();
+        this.currentEvent = null;
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.updateUI();
+        this.startGame();
+        this.initMobileOptimizations();
+    }
+
+    // === Управление состоянием ===
+
+    getDefaultState() {
+        return {
+            location: "main",
+            turn: 0,
+            seenIds: [],
+            cooldowns: {},
+            stats: {
+                hp: 20,
+                damage: 3,
+                fame: 0,
+                gold: 10,
+                debt: 0,
+                items: []
+            }
+        };
+    }
+
+    loadState() {
+        try {
+            const saved = localStorage.getItem('gameState');
+            return saved ? {...this.getDefaultState(), ...JSON.parse(saved) } : this.getDefaultState();
+        } catch (e) {
+            console.warn('Failed to load state, using default:', e);
+            return this.getDefaultState();
+        }
+    }
+
+    saveState() {
+        try {
+            localStorage.setItem('gameState', JSON.stringify(this.state));
+        } catch (e) {
+            console.error('Failed to save state:', e);
+        }
+    }
+
+    resetState() {
+        this.state = this.getDefaultState();
+        this.saveState();
+        this.updateUI();
+        this.startGame();
+    }
+
+    // === Эффекты и валидация ===
+
+    normalizeEffect(value) {
+        if (typeof value === 'number') {
+            return value;
+        }
+
+        if (typeof value === 'string') {
+            // Обработка строковых значений "+8", "-5"
+            if (/^[+-]?\d+$/.test(value)) {
+                return parseInt(value, 10);
+            }
+
+            // Обработка случайных значений "random:-5,+15"
+            const randomMatch = value.match(/^random:(-?\d+),(-?\d+)$/);
+            if (randomMatch) {
+                const min = parseInt(randomMatch[1], 10);
+                const max = parseInt(randomMatch[2], 10);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // Обработка вероятностных значений "chance:0.5,+6,-3"
+            const chanceMatch = value.match(/^chance:([0-9.]+),(-?\d+),(-?\d+)$/);
+            if (chanceMatch) {
+                const chance = parseFloat(chanceMatch[1]);
+                const success = parseInt(chanceMatch[2], 10);
+                const failure = parseInt(chanceMatch[3], 10);
+                return Math.random() <= chance ? success : failure;
+            }
+        }
+
+        return 0;
+    }
+
+    applyEffects(effects) {
+        if (!effects) return;
+
+        const changes = {};
+
+        Object.keys(effects).forEach(key => {
+            if (key === 'items_add' && Array.isArray(effects[key])) {
+                effects[key].forEach(item => {
+                    if (!this.state.stats.items.includes(item)) {
+                        this.state.stats.items.push(item);
+                        changes[key] = changes[key] || [];
+                        changes[key].push(item);
+                    }
+                });
+            } else if (key === 'items_remove' && Array.isArray(effects[key])) {
+                effects[key].forEach(item => {
+                    const index = this.state.stats.items.indexOf(item);
+                    if (index > -1) {
+                        this.state.stats.items.splice(index, 1);
+                        changes[key] = changes[key] || [];
+                        changes[key].push(item);
+                    }
+                });
+            } else if (['hp', 'damage', 'fame', 'gold', 'debt'].includes(key)) {
+                const change = this.normalizeEffect(effects[key]);
+                if (change !== 0) {
+                    if (key === 'hp') {
+                        // HP не может быть отрицательным
+                        this.state.stats[key] = Math.max(0, this.state.stats[key] + change);
+                    } else {
+                        this.state.stats[key] = Math.max(0, this.state.stats[key] + change);
+                    }
+                    changes[key] = change;
+                }
+            }
+        });
+
+        // Ограничения
+        this.state.stats.hp = Math.max(0, this.state.stats.hp);
+        this.state.stats.gold = Math.max(0, this.state.stats.gold);
+
+        return changes;
+    }
+
+    applyCostBenefit(cost, benefit) {
+        let applied = false;
+        let usedDebt = false;
+
+        // Проверяем, можем ли применить cost
+        if (cost) {
+            if (cost.gold && this.state.stats.gold < cost.gold) {
+                // Проверяем возможность взять в долг
+                if (cost.gold <= 5 && this.state.stats.gold < cost.gold) {
+                    const debtAmount = cost.gold - this.state.stats.gold;
+                    this.state.stats.debt = (this.state.stats.debt || 0) + debtAmount;
+                    this.state.stats.gold = 0;
+                    usedDebt = true;
+                    applied = true;
+
+                    // Показываем предупреждение о долге
+                    this.showDebtWarning(debtAmount);
+                } else {
+                    return false; // Недостаточно золота и нельзя в долг
+                }
+            } else if (cost.gold) {
+                this.state.stats.gold -= cost.gold;
+                applied = true;
+            }
+
+            if (cost.items && Array.isArray(cost.items)) {
+                for (const item of cost.items) {
+                    if (!this.state.stats.items.includes(item)) {
+                        return false; // Нет нужного предмета
+                    }
+                }
+            }
+        }
+
+        // Применяем cost
+        if (cost) {
+            if (cost.gold) {
+                this.state.stats.gold -= cost.gold;
+                applied = true;
+            }
+            if (cost.items && Array.isArray(cost.items)) {
+                cost.items.forEach(item => {
+                    const index = this.state.stats.items.indexOf(item);
+                    if (index > -1) {
+                        this.state.stats.items.splice(index, 1);
+                        applied = true;
+                    }
+                });
+            }
+        }
+
+        // Применяем benefit
+        if (benefit) {
+            if (benefit.hp) {
+                this.state.stats.hp += this.normalizeEffect(benefit.hp);
+                applied = true;
+            }
+            if (benefit.gold) {
+                this.state.stats.gold += this.normalizeEffect(benefit.gold);
+                applied = true;
+            }
+            if (benefit.fame) {
+                this.state.stats.fame += this.normalizeEffect(benefit.fame);
+                applied = true;
+            }
+            if (benefit.items && Array.isArray(benefit.items)) {
+                benefit.items.forEach(item => {
+                    if (!this.state.stats.items.includes(item)) {
+                        this.state.stats.items.push(item);
+                        applied = true;
+                    }
+                });
+            }
+        }
+
+        return applied;
+    }
+
+    // === API взаимодействие ===
+
+    async loadNextEvent() {
+        try {
+            this.showLoading(true);
+
+            const response = await fetch(`${this.apiBase}next.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    state: this.state
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.currentEvent = result.data.event;
+                // Не обновляем state автоматически, это делается при выборе
+                this.renderEvent();
+            } else {
+                throw new Error(result.error || 'Unknown API error');
+            }
+        } catch (error) {
+            console.error('Error loading next event:', error);
+
+            // Проверяем тип ошибки для более точного сообщения
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                this.showError('Нет сети, попробуйте ещё раз');
+            } else if (error.message.includes('HTTP')) {
+                this.showError('Ошибка сервера, попробуйте позже');
+            } else {
+                this.showError('Ошибка загрузки события. Попробуйте обновить страницу.');
+            }
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    // === Игровая логика ===
+
+    async startGame() {
+        if (this.state.stats.hp <= 0) {
+            this.showDeathScreen();
+            return;
+        }
+
+        await this.loadNextEvent();
+    }
+
+    async makeChoice(choice, choiceIndex) {
+        try {
+            // Отключаем кнопки
+            this.setChoicesEnabled(false);
+
+            // Применяем cost/benefit выбора
+            if (choice.cost || choice.benefit) {
+                const applied = this.applyCostBenefit(choice.cost, choice.benefit);
+                if (!applied && choice.cost) {
+                    this.showError('Недостаточно ресурсов для этого действия!');
+                    this.setChoicesEnabled(true);
+                    return;
+                }
+            }
+
+            // Применяем эффекты события
+            if (this.currentEvent.effects) {
+                this.applyEffects(this.currentEvent.effects);
+            }
+
+            // Проверяем на goto_location для особой обработки
+            const isLocationChange = choice.next && choice.next.startsWith('goto_location:');
+            let shouldIncrementTurn = !isLocationChange;
+
+            if (isLocationChange) {
+                const newLocation = choice.next.substring('goto_location:'.length);
+                const oldLocation = this.state.location;
+
+                // Обновляем локацию
+                this.state.location = newLocation;
+
+                // Специальная обработка перехода в деревню после пролога
+                if (oldLocation === 'main' && newLocation === 'village') {
+                    // Сбрасываем seenIds только для типа 'main'
+                    this.state.seenIds = this.state.seenIds.filter(id => !id.startsWith('main.'));
+                }
+            }
+
+            // Завершение хода (только если не goto_location)
+            if (shouldIncrementTurn) {
+                this.finishTurn();
+            } else {
+                // При телепортации только добавляем в просмотренные
+                if (this.currentEvent && this.currentEvent.id && this.currentEvent.id !== 'default.idle') {
+                    if (!this.state.seenIds.includes(this.currentEvent.id)) {
+                        this.state.seenIds.push(this.currentEvent.id);
+                    }
+                }
+            }
+
+            // Проверка смерти
+            if (this.state.stats.hp <= 0) {
+                this.showDeathScreen();
+                return;
+            }
+
+            // Обновляем UI
+            this.updateUI();
+            this.saveState();
+
+            // Если следующий ход не "end", загружаем следующее событие
+            if (choice.next !== 'end') {
+                await this.loadNextEvent();
+            } else {
+                this.showGameEnd();
+            }
+
+        } catch (error) {
+            console.error('Error making choice:', error);
+            this.showError('Ошибка при выполнении действия.');
+            this.setChoicesEnabled(true);
+        }
+    }
+
+    finishTurn() {
+        // Увеличиваем номер хода
+        this.state.turn++;
+
+        // Добавляем ID события в просмотренные
+        if (this.currentEvent && this.currentEvent.id && this.currentEvent.id !== 'default.idle') {
+            if (!this.state.seenIds.includes(this.currentEvent.id)) {
+                this.state.seenIds.push(this.currentEvent.id);
+            }
+        }
+
+        // Обновляем кулдауны
+        Object.keys(this.state.cooldowns).forEach(id => {
+            if (this.state.cooldowns[id] > 0) {
+                this.state.cooldowns[id]--;
+                if (this.state.cooldowns[id] <= 0) {
+                    delete this.state.cooldowns[id];
+                }
+            }
+        });
+
+        // Устанавливаем кулдаун для текущего события если нужно
+        if (this.currentEvent && this.currentEvent.rules && this.currentEvent.rules.cooldown > 0) {
+            this.state.cooldowns[this.currentEvent.id] = this.currentEvent.rules.cooldown;
+        }
+    }
+
+    // === UI управление ===
+
+    bindEvents() {
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            this.resetState();
+            this.showDeathScreen(false);
+        });
+
+        // Кнопки главного меню
+        const btnStart = document.getElementById('btnStart');
+        const btnContinue = document.getElementById('btnContinue');
+        const btnMute = document.getElementById('btnMute');
+        const btnToMenu = document.getElementById('btnToMenu');
+
+        if (btnStart) {
+            btnStart.addEventListener('click', () => {
+                unlockAudioOnce();
+                gameBgm.load(); // предварительно открываем поток
+                startMenuBgm();
+                this.showGame();
+            });
+        }
+
+        if (btnContinue) {
+            btnContinue.addEventListener('click', () => {
+                unlockAudioOnce();
+                gameBgm.load(); // предварительно открываем поток
+                startGameBgm();
+                this.showGame();
+            });
+        }
+
+        if (btnMute) {
+            btnMute.addEventListener('click', () => {
+                if (menuBgm ? .paused && gameBgm ? .paused) {
+                    startMenuBgm();
+                    btnMute.textContent = 'Звук: вкл';
+                } else {
+                    stopAllBgm();
+                    btnMute.textContent = 'Звук: выкл';
+                }
+            });
+        }
+
+        if (btnToMenu) {
+            btnToMenu.addEventListener('click', () => {
+                this.showMenu();
+            });
+        }
+    }
+
+    initMobileOptimizations() {
+        // Пауза видео при неактивной вкладке
+        const menuVideo = document.getElementById('menuVideo');
+        document.addEventListener('visibilitychange', () => {
+            if (!menuVideo) return;
+            if (document.hidden) {
+                menuVideo.pause();
+            } else {
+                menuVideo.play().catch(() => {});
+            }
+        });
+
+        // Разблокировка аудио по тачу/клику
+        document.addEventListener('touchstart', unlockAudioOnce, { once: true, passive: true });
+        document.addEventListener('click', unlockAudioOnce, { once: true });
+
+        // Обработка клавиатуры для доступности
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && this.mode === 'game') {
+                const cardEl = document.getElementById('card');
+                if (cardEl) {
+                    const first = cardEl.querySelector('.choices .choice');
+                    if (first) {
+                        e.preventDefault();
+                        first.click();
+                    }
+                }
+            }
+        });
+    }
+
+    showMenu() {
+        this.mode = 'menu';
+        document.getElementById('menu-root').style.display = 'grid';
+        document.getElementById('app-root').style.display = 'none';
+        startMenuBgm();
+    }
+
+    showGame() {
+        this.mode = 'game';
+        document.getElementById('menu-root').style.display = 'none';
+        document.getElementById('app-root').style.display = 'grid';
+        startGameBgm();
+    }
+
+    updateUI() {
+        // Обновляем статистики в боковой панели
+        document.getElementById('stat-hp').textContent = this.state.stats.hp;
+        document.getElementById('stat-damage').textContent = this.state.stats.damage;
+        document.getElementById('stat-fame').textContent = this.state.stats.fame;
+        document.getElementById('stat-gold').textContent = this.state.stats.gold;
+
+        // Обновляем долг если есть
+        const debtElement = document.getElementById('stat-debt');
+        if (debtElement) {
+            debtElement.textContent = this.state.stats.debt || 0;
+        }
+
+        document.getElementById('current-location').textContent = this.state.location;
+        document.getElementById('turn-number').textContent = this.state.turn;
+
+        // Обновляем верхнюю панель характеристик
+        this.updateTopStatsPanel();
+
+        // Обновляем инвентарь
+        this.updateInventory();
+
+        // Цветовая индикация HP
+        const hpElement = document.getElementById('stat-hp');
+        if (this.state.stats.hp <= 5) {
+            hpElement.style.color = '#d32f2f';
+        } else if (this.state.stats.hp <= 10) {
+            hpElement.style.color = '#ff9800';
+        } else {
+            hpElement.style.color = '#4caf50';
+        }
+
+        // Цветовая индикация долга
+        const debtElement = document.getElementById('stat-debt');
+        if (debtElement) {
+            const debt = this.state.stats.debt || 0;
+            if (debt > 0) {
+                debtElement.style.color = '#d32f2f';
+            } else {
+                debtElement.style.color = '#4caf50';
+            }
+        }
+    }
+
+    updateInventory() {
+        const container = document.getElementById('inventory-items');
+
+        if (!this.state.stats.items || this.state.stats.items.length === 0) {
+            container.innerHTML = '<div class="inventory-empty">Пусто</div>';
+        } else {
+            container.innerHTML = this.state.stats.items
+                .map(item => `<div class="inventory-item">${item}</div>`)
+                .join('');
+        }
+    }
+
+    renderEvent() {
+        if (!this.currentEvent) return;
+
+        const event = this.currentEvent;
+
+        // Обновляем изображение с ленивой загрузкой
+        const imageEl = document.getElementById('event-image');
+        if (event.image) {
+            imageEl.style.setProperty('--image-url', `url(${event.image})`);
+            imageEl.classList.add('has-image');
+            imageEl.innerHTML = `<img src="${event.image}" alt="${event.title || 'Событие'}" loading="lazy" decoding="async" />`;
+        } else {
+            imageEl.classList.remove('has-image');
+            imageEl.innerHTML = '🎭';
+        }
+
+        // Обновляем заголовок и текст
+        document.getElementById('event-title').textContent = `Событие: ${event.title}`;
+        document.getElementById('event-text').textContent = event.text;
+
+        // Рендерим выборы
+        this.renderChoices(event.choices || []);
+    }
+
+    renderChoices(choices) {
+        const container = document.getElementById('choices-container');
+
+        if (choices.length === 0) {
+            container.innerHTML = '<button class="choice-btn" tabindex="0" onclick="game.resetState()">🔄 Начать заново</button>';
+            return;
+        }
+
+        container.innerHTML = choices.map((choice, index) => {
+            let choiceHtml = `<button class="choice-btn" tabindex="0" onclick="game.makeChoice(${JSON.stringify(choice).replace(/"/g, '&quot;')}, ${index})">
+                ${choice.label}`;
+
+            // Добавляем информацию о стоимости
+            if (choice.cost) {
+                const costParts = [];
+                if (choice.cost.gold) costParts.push(`💰 -${choice.cost.gold}`);
+                if (choice.cost.items) costParts.push(...choice.cost.items.map(item => `📦 -${item}`));
+                if (costParts.length > 0) {
+                    choiceHtml += `<div class="choice-cost">Стоимость: ${costParts.join(', ')}</div>`;
+                }
+            }
+
+            // Добавляем информацию о выгоде
+            if (choice.benefit) {
+                const benefitParts = [];
+                if (choice.benefit.hp) benefitParts.push(`❤️ +${choice.benefit.hp}`);
+                if (choice.benefit.gold) benefitParts.push(`💰 +${choice.benefit.gold}`);
+                if (choice.benefit.fame) benefitParts.push(`⭐ +${choice.benefit.fame}`);
+                if (choice.benefit.items) benefitParts.push(...choice.benefit.items.map(item => `📦 +${item}`));
+                if (benefitParts.length > 0) {
+                    choiceHtml += `<div class="choice-benefit">Получите: ${benefitParts.join(', ')}</div>`;
+                }
+            }
+
+            choiceHtml += '</button>';
+            return choiceHtml;
+        }).join('');
+    }
+
+    setChoicesEnabled(enabled) {
+        const buttons = document.querySelectorAll('.choice-btn');
+        buttons.forEach(btn => {
+            btn.disabled = !enabled;
+        });
+    }
+
+    showLoading(show) {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (show) {
+            loadingScreen.classList.remove('hidden');
+        } else {
+            loadingScreen.classList.add('hidden');
+        }
+    }
+
+    showDeathScreen(show = true) {
+        const deathScreen = document.getElementById('death-screen');
+        if (show) {
+            deathScreen.classList.remove('hidden');
+        } else {
+            deathScreen.classList.add('hidden');
+        }
+    }
+
+    showGameEnd() {
+        document.getElementById('event-title').textContent = 'Игра завершена!';
+        document.getElementById('event-text').textContent = 'Спасибо за игру! Ваше приключение подошло к концу.';
+        document.getElementById('choices-container').innerHTML =
+            '<button class="choice-btn" onclick="game.resetState()">🔄 Начать заново</button>';
+    }
+
+    showError(message) {
+        // Простое отображение ошибки через alert
+        // В реальном проекте можно сделать красивое модальное окно
+        alert(message);
+    }
+
+    showDebtWarning(debtAmount) {
+        // Показываем предупреждение о долге
+        const warningHtml = `
+            <div class="debt-warning" style="
+                position: fixed; 
+                top: 20px; 
+                right: 20px; 
+                background: #ff9800; 
+                color: white; 
+                padding: 15px; 
+                border-radius: 8px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                max-width: 300px;
+            ">
+                <strong>⚠️ Взят долг!</strong><br>
+                Долг: +${debtAmount} золота<br>
+                <small>Общий долг: ${this.state.stats.debt || 0}</small>
+            </div>
+        `;
+
+        // Добавляем предупреждение
+        document.body.insertAdjacentHTML('beforeend', warningHtml);
+
+        // Убираем через 3 секунды
+        setTimeout(() => {
+            const warning = document.querySelector('.debt-warning');
+            if (warning) {
+                warning.remove();
+            }
+        }, 3000);
+    }
+
+    async handleLocationTransition(newLocation) {
+        try {
+            const oldLocation = this.state.location;
+
+            // Обновляем локацию
+            this.state.location = newLocation;
+
+            // Специальная обработка перехода в деревню после пролога
+            if (oldLocation === 'main' && newLocation === 'village') {
+                // Сбрасываем seenIds только для типа 'main'
+                this.state.seenIds = this.state.seenIds.filter(id => !id.startsWith('main.'));
+            }
+
+            // Добавляем текущее событие в просмотренные (без увеличения хода)
+            if (this.currentEvent && this.currentEvent.id && this.currentEvent.id !== 'default.idle') {
+                if (!this.state.seenIds.includes(this.currentEvent.id)) {
+                    this.state.seenIds.push(this.currentEvent.id);
+                }
+            }
+
+            // Обновляем UI и сохраняем
+            this.updateUI();
+            this.saveState();
+
+            // Немедленно запрашиваем следующее событие в новой локации
+            await this.loadNextEvent();
+
+        } catch (error) {
+            console.error('Error during location transition:', error);
+
+            // Проверяем тип ошибки для более точного сообщения
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                this.showError('Нет сети, попробуйте ещё раз');
+            } else {
+                this.showError('Ошибка при перемещении.');
+            }
+            this.setChoicesEnabled(true);
+        }
+    }
+}
+
+// Глобальная переменная для доступа из HTML
+let game;
+
+// Анти-залипание 100vh на iOS
+function setVhVar() {
+    document.documentElement.style.setProperty('--vh', window.visualViewport ? `${window.visualViewport.height}px` : `${window.innerHeight}px`);
+}
+window.addEventListener('resize', setVhVar);
+if (window.visualViewport) window.visualViewport.addEventListener('resize', setVhVar);
+setVhVar();
+
+// Инициализация игры
+document.addEventListener('DOMContentLoaded', () => {
+    initAudio();
+    game = new GameEngine();
+});

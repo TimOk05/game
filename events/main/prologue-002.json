@@ -1,0 +1,29 @@
+{
+    "id": "main.prologue.002",
+    "type": "main",
+    "title": "Пролог: Воспоминания",
+    "image": "/assets/main/prologue-002.jpg",
+    "text": "Старые улицы помнят детские игры и юношеские мечты. Но время изменило многое — и город, и тебя. Теперь ты опытный путешественник, закаленный в приключениях. Пора вспомнить, зачем вернулся.",
+    "choices": [{
+        "label": "Далее",
+        "next": "auto"
+    }],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": null,
+        "cooldown": 0,
+        "once": true,
+        "only_in_location": "main",
+        "child_roll": null
+    },
+    "tags": ["story", "prologue"],
+    "version": 1
+}

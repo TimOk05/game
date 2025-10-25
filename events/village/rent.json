@@ -1,0 +1,32 @@
+{
+    "id": "village.rent",
+    "type": "village",
+    "title": "Аренда жилья",
+    "image": "/assets/village/rent.jpg",
+    "text": "Хозяин жилья напоминает о плате за аренду. Время платить по счетам.",
+    "choices": [{
+        "label": "Заплатить 5 золота",
+        "next": "auto"
+    }],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": -5,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": {
+            "kind": "every_n_turns",
+            "n": 10
+        },
+        "chance": null,
+        "cooldown": 0,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": null
+    },
+    "tags": ["maintenance", "rent"],
+    "version": 1
+}

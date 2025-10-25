@@ -1,0 +1,47 @@
+{
+    "id": "village.tavern",
+    "type": "village",
+    "title": "Таверна у перекрёстка",
+    "image": "/assets/village/tavern.jpg",
+    "text": "Тепло, шум и запах тушёного мяса. Хозяин кивает тебе.",
+    "choices": [{
+            "label": "Поесть и отдохнуть (-3 золота, +HP)",
+            "next": "auto",
+            "cost": {
+                "gold": 3
+            },
+            "benefit": {
+                "hp": "+8"
+            }
+        },
+        {
+            "label": "Отказаться",
+            "next": "auto"
+        }
+    ],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": 0.35,
+        "cooldown": 1,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": {
+            "chance": 0.5,
+            "pool": [
+                "village.tavern.fight",
+                "village.tavern.drink_tournament",
+                "village.tavern.gambling"
+            ]
+        }
+    },
+    "tags": ["service", "healing"],
+    "version": 1
+}

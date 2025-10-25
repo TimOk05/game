@@ -1,0 +1,34 @@
+{
+    "id": "village.tavern.drink_tournament",
+    "type": "village",
+    "title": "Турнир по выпивке",
+    "image": "/assets/village/tavern-drink-tournament.jpg",
+    "text": "Местные завсегдатаи устроили состязание — кто больше выпьет и останется на ногах. Призовой фонд растёт!",
+    "choices": [{
+            "label": "Участвовать (риск)",
+            "next": "auto"
+        },
+        {
+            "label": "Просто наблюдать",
+            "next": "auto"
+        }
+    ],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": "+1",
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": 1,
+        "cooldown": 0,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": null
+    },
+    "tags": ["gambling", "random_child", "social"],
+    "version": 1
+}

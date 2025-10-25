@@ -1,0 +1,42 @@
+{
+    "id": "village.merchant",
+    "type": "village",
+    "title": "Торговец",
+    "image": "/assets/village/merchant.jpg",
+    "text": "Странствующий торговец предлагает свои товары. Что выберете?",
+    "choices": [{
+            "label": "Купить зелье лечения (-5 золота, +зелье)",
+            "next": "auto",
+            "cost": { "gold": 5 },
+            "benefit": { "items_add": ["healing_potion"] }
+        },
+        {
+            "label": "Купить оружие (-8 золота, +оружие)",
+            "next": "auto",
+            "cost": { "gold": 8 },
+            "benefit": { "items_add": ["iron_sword"] }
+        },
+        {
+            "label": "Отказаться",
+            "next": "auto"
+        }
+    ],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": 0.3,
+        "cooldown": 2,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": null
+    },
+    "tags": ["merchant", "shop"],
+    "version": 1
+}

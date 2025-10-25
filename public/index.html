@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0b0b" />
+    <title>Фэнтези-квест</title>
+    <link rel="stylesheet" href="/app.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+</head>
+
+<body>
+    <!-- Главноe меню -->
+    <div id="menu-root" class="menu-root">
+        <video id="menuVideo" class="menu-video" autoplay muted loop playsinline preload="auto">
+      <source src="/assets/media/menu-campfire.webm" type="video/webm"/>
+      <source src="/assets/media/menu-campfire.mp4" type="video/mp4"/>
+    </video>
+
+        <div class="menu-overlay">
+            <h1 class="menu-title">Главное меню</h1>
+            <div class="menu-buttons">
+                <button id="btnStart" class="btn primary">Начать игру</button>
+                <button id="btnContinue" class="btn" style="display:none">Продолжить</button>
+                <button id="btnMute" class="btn">Звук: вкл/выкл</button>
+            </div>
+            <p class="menu-hint">Нажмите «Начать игру», чтобы включить звук и начать пролог.</p>
+        </div>
+    </div>
+
+    <!-- Игровая сцена (SPA) -->
+    <div id="app-root" class="app-root" style="display:none">
+        <header class="hud">
+            <div class="stats">
+                <span>HP: <b id="statHp">—</b></span>
+                <span>Урон: <b id="statDmg">—</b></span>
+                <span>Слава: <b id="statFame">—</b></span>
+                <span>Золото: <b id="statGold">—</b></span>
+            </div>
+            <div class="inv">
+                Инвентарь: <span id="invList">—</span>
+            </div>
+            <button id="btnToMenu" class="btn ghost">В меню</button>
+        </header>
+
+        <main class="card" id="card">
+            <!-- сюда рендерится текущая карточка события -->
+        </main>
+    </div>
+
+    <script src="/app.js" defer></script>
+
+    <script>
+        // Регистрация Service Worker для PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

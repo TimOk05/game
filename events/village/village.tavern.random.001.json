@@ -1,0 +1,46 @@
+{
+    "id": "village.tavern.random.001",
+    "type": "village",
+    "title": "Случайная встреча в таверне",
+    "image": "/assets/village/tavern-random.jpg",
+    "text": "В таверне 'Золотой кубок' сегодня особенно оживленно. За одним из столов разгорается спор, у барной стойки кто-то рассказывает удивительные истории, а в углу таинственный незнакомец внимательно следит за происходящим...",
+    "choices": [{
+            "label": "Подойти к спорящим",
+            "next": "child_roll"
+        },
+        {
+            "label": "Послушать рассказчика",
+            "next": "village.tavern.storyteller.001"
+        },
+        {
+            "label": "Заказать эль и наблюдать",
+            "next": "village.tavern.observe.001"
+        }
+    ],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": { "kind": "every_n_turns", "n": 5 },
+        "chance": 0.7,
+        "cooldown": 2,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": {
+            "chance": 0.6,
+            "pool": [
+                "village.tavern.fight.001",
+                "village.tavern.drink_tournament.001",
+                "village.tavern.gambling.001",
+                "village.tavern.merchant_deal.001"
+            ]
+        }
+    },
+    "tags": ["random", "social", "tavern", "encounter"],
+    "version": 1
+}

@@ -1,0 +1,34 @@
+{
+    "id": "shared.idle",
+    "type": "shared",
+    "title": "Тишина",
+    "image": "/assets/shared/idle.jpg",
+    "text": "Время течет медленно. Ничего особенного не происходит, но иногда и такие моменты нужны для размышлений.",
+    "choices": [{
+            "label": "Подождать ещё",
+            "next": "auto"
+        },
+        {
+            "label": "Поискать что-то интересное",
+            "next": "end"
+        }
+    ],
+    "effects": {
+        "hp": "+1",
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": 1.0,
+        "cooldown": 0,
+        "once": false,
+        "only_in_location": null,
+        "child_roll": null
+    },
+    "tags": ["idle", "default", "peaceful"],
+    "version": 1
+}

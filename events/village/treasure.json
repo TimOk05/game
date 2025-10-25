@@ -1,0 +1,29 @@
+{
+    "id": "village.treasure",
+    "type": "village",
+    "title": "Найденный клад",
+    "image": "/assets/village/treasure.jpg",
+    "text": "В старом сундуке вы нашли ценные предметы и золото!",
+    "choices": [{
+        "label": "Взять всё",
+        "next": "auto"
+    }],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 15,
+        "items_add": ["ancient_coin", "healing_potion"],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": 0.1,
+        "cooldown": 0,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": null
+    },
+    "tags": ["treasure", "loot"],
+    "version": 1
+}

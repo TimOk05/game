@@ -1,0 +1,34 @@
+{
+    "id": "village.tavern.fight",
+    "type": "village",
+    "title": "Драка в таверне",
+    "image": "/assets/village/tavern-fight.jpg",
+    "text": "Кружка пролетает рядом — и вот уже кулаки свистят в воздухе.",
+    "choices": [{
+            "label": "Вступить (+слава, -HP)",
+            "next": "auto"
+        },
+        {
+            "label": "Отступить (без эффектов)",
+            "next": "auto"
+        }
+    ],
+    "effects": {
+        "hp": "combat:-4",
+        "damage": 0,
+        "fame": "+1",
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": 1,
+        "cooldown": 0,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": null
+    },
+    "tags": ["combat", "random_child"],
+    "version": 1
+}

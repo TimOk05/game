@@ -1,0 +1,10 @@
+# PWA Icons
+# Place your PWA icons here:
+# - icon-192.png (192x192px) - для Android Chrome
+# - icon-512.png (512x512px) - для Android Chrome и iOS Safari
+# 
+# Рекомендации:
+# - Формат: PNG с прозрачностью
+# - Стиль: адаптивный (maskable) для разных форм иконок
+# - Цвета: соответствуют theme_color (#0b0b0b)
+# - Размер: точно 192x192 и 512x512 пикселей

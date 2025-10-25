@@ -1,0 +1,34 @@
+{
+    "id": "village.tavern.gambling",
+    "type": "village",
+    "title": "Азартные игры",
+    "image": "/assets/village/tavern-gambling.jpg",
+    "text": "За столом идёт игра в кости. Ставки небольшие, но фортуна переменчива...",
+    "choices": [{
+            "label": "Поставить 3 золота",
+            "next": "auto"
+        },
+        {
+            "label": "Не играть",
+            "next": "auto"
+        }
+    ],
+    "effects": {
+        "hp": 0,
+        "damage": 0,
+        "fame": 0,
+        "gold": 0,
+        "items_add": [],
+        "items_remove": []
+    },
+    "rules": {
+        "frequency": null,
+        "chance": 1,
+        "cooldown": 0,
+        "once": false,
+        "only_in_location": "village",
+        "child_roll": null
+    },
+    "tags": ["gambling", "random_child"],
+    "version": 1
+}
