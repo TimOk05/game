@@ -900,25 +900,10 @@ setVhVar();
 // Инициализация игры
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing game...');
-    console.log('Current URL:', window.location.href);
-
     try {
         initAudio();
         game = new GameEngine();
         console.log('Game initialized successfully');
-
-        // Дополнительная проверка через небольшую задержку
-        setTimeout(() => {
-            const btnStart = document.getElementById('btnStart');
-            console.log('Delayed check - Start button:', btnStart);
-            if (btnStart) {
-                console.log('Start button found, adding test click handler');
-                btnStart.addEventListener('click', () => {
-                    console.log('TEST: Start button clicked!');
-                });
-            }
-        }, 100);
-
     } catch (error) {
         console.error('Game initialization failed:', error);
         // Показываем ошибку пользователю

@@ -19,7 +19,7 @@ function scanEvents() {
     }
     
     $events = [];
-    $eventsDir = '../events';
+    $eventsDir = '../../events';
     
     if (!is_dir($eventsDir)) {
         return [];
