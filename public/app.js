@@ -547,8 +547,7 @@ class GameEngine {
                 if (gameBgm) {
                     gameBgm.load(); // предварительно открываем поток
                 }
-                startMenuBgm();
-                this.showGame();
+                this.showGame(); // Убираем startMenuBgm() - музыка будет запущена в showGame()
             });
         } else {
             console.error('Start button not found!');
@@ -652,7 +651,7 @@ class GameEngine {
         if (loadingScreen) loadingScreen.classList.add('hidden');
         if (deathScreen) deathScreen.classList.add('hidden');
 
-        startGameBgm();
+        startGameBgm(); // Исправлено: должно быть startGameBgm(), а не startMenuBgm()
 
         // Запускаем игру после переключения интерфейса
         this.startGame();
