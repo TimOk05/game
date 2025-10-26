@@ -8,65 +8,126 @@ let audioUnlocked = false;
 
 // Разблокировка аудио для мобильных устройств
 function unlockAudioOnce() {
-    if (audioUnlocked) return;
+    if (audioUnlocked) {
+        console.log('Audio already unlocked');
+        return;
+    }
 
     console.log('Unlocking audio for mobile devices...');
 
-    const tryPlay = async(a) => {
-        if (!a) return;
+    const tryPlay = async(audio) => {
+        if (!audio) {
+            console.log('Audio object is null');
+            return;
+        }
+
         try {
-            a.volume = 0.01; // Очень тихо для разблокировки
-            await a.play();
-            a.pause();
-            a.currentTime = 0;
-            console.log('Audio unlocked successfully');
+            console.log('Trying to unlock audio:', audio.src);
+            audio.volume = 0.01; // Очень тихо для разблокировки
+            await audio.play();
+            audio.pause();
+            audio.currentTime = 0;
+            console.log('Audio unlocked successfully:', audio.src);
         } catch (e) {
-            console.log('Audio unlock failed:', e.message);
+            console.log('Audio unlock failed:', e.message, 'for', audio.src);
         }
     };
 
     tryPlay(menuBgm);
     tryPlay(gameBgm);
     audioUnlocked = true;
+    console.log('Audio unlock process completed');
 }
 
 // Инициализация аудио
 function initAudio() {
-    menuBgm = new Audio('assets/media/menu-campfire.mp3');
-    gameBgm = new Audio('assets/media/game-ambient.mp3');
-    menuBgm.loop = true;
-    gameBgm.loop = true;
-    menuBgm.volume = 0.3;
-    gameBgm.volume = 0.2;
+    console.log('Initializing audio...');
+
+    try {
+        menuBgm = new Audio('assets/media/menu-campfire.mp3');
+        gameBgm = new Audio('assets/media/game-ambient.mp3');
+
+        // Настройка аудио
+        menuBgm.loop = true;
+        gameBgm.loop = true;
+        menuBgm.volume = 0.3;
+        gameBgm.volume = 0.2;
+
+        // Предзагрузка
+        menuBgm.preload = 'auto';
+        gameBgm.preload = 'auto';
+
+        console.log('Audio initialized successfully');
+        console.log('Menu BGM:', menuBgm.src);
+        console.log('Game BGM:', gameBgm.src);
+
+    } catch (error) {
+        console.error('Audio initialization failed:', error);
+    }
 }
 
 // Управление музыкой
 function startMenuBgm() {
-    if (menuBgm) {
+    console.log('startMenuBgm called');
+
+    if (!menuBgm) {
+        console.log('Menu BGM not initialized');
+        return;
+    }
+
+    try {
         console.log('Starting menu BGM...');
         gameBgm ? .pause();
         menuBgm.volume = 0.3;
-        menuBgm.play().catch((e) => {
-            console.log('Menu BGM play failed:', e.message);
-        });
+
+        const playPromise = menuBgm.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('Menu BGM started successfully');
+            }).catch((e) => {
+                console.log('Menu BGM play failed:', e.message);
+            });
+        }
+    } catch (error) {
+        console.error('Error starting menu BGM:', error);
     }
 }
 
 function startGameBgm() {
-    if (gameBgm) {
+    console.log('startGameBgm called');
+
+    if (!gameBgm) {
+        console.log('Game BGM not initialized');
+        return;
+    }
+
+    try {
         console.log('Starting game BGM...');
         menuBgm ? .pause();
         gameBgm.volume = 0.2;
-        gameBgm.play().catch((e) => {
-            console.log('Game BGM play failed:', e.message);
-        });
+
+        const playPromise = gameBgm.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('Game BGM started successfully');
+            }).catch((e) => {
+                console.log('Game BGM play failed:', e.message);
+            });
+        }
+    } catch (error) {
+        console.error('Error starting game BGM:', error);
     }
 }
 
 function stopAllBgm() {
     console.log('Stopping all BGM...');
-    menuBgm ? .pause();
-    gameBgm ? .pause();
+    try {
+        menuBgm ? .pause();
+        gameBgm ? .pause();
+        console.log('All BGM stopped');
+    } catch (error) {
+        console.error('Error stopping BGM:', error);
+    }
 }
 
 class GameEngine {
@@ -454,10 +515,16 @@ class GameEngine {
     // === UI управление ===
 
     bindEvents() {
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            this.resetState();
-            this.showDeathScreen(false);
-        });
+        console.log('Binding events...');
+
+        // Кнопка перезапуска (может не существовать при инициализации)
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                this.resetState();
+                this.showDeathScreen(false);
+            });
+        }
 
         // Кнопки главного меню
         const btnStart = document.getElementById('btnStart');
@@ -465,7 +532,15 @@ class GameEngine {
         const btnMute = document.getElementById('btnMute');
         const btnToMenu = document.getElementById('btnToMenu');
 
+        console.log('Buttons found:', {
+            btnStart: !!btnStart,
+            btnContinue: !!btnContinue,
+            btnMute: !!btnMute,
+            btnToMenu: !!btnToMenu
+        });
+
         if (btnStart) {
+            console.log('Adding click listener to Start button');
             btnStart.addEventListener('click', () => {
                 console.log('Start button clicked');
                 unlockAudioOnce();
@@ -475,6 +550,8 @@ class GameEngine {
                 startMenuBgm();
                 this.showGame();
             });
+        } else {
+            console.error('Start button not found!');
         }
 
         if (btnContinue) {
@@ -507,6 +584,8 @@ class GameEngine {
                 this.showMenu();
             });
         }
+
+        console.log('Events bound successfully');
     }
 
     initMobileOptimizations() {
