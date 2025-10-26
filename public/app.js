@@ -900,10 +900,25 @@ setVhVar();
 // Инициализация игры
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing game...');
+    console.log('Current URL:', window.location.href);
+
     try {
         initAudio();
         game = new GameEngine();
         console.log('Game initialized successfully');
+
+        // Дополнительная проверка через небольшую задержку
+        setTimeout(() => {
+            const btnStart = document.getElementById('btnStart');
+            console.log('Delayed check - Start button:', btnStart);
+            if (btnStart) {
+                console.log('Start button found, adding test click handler');
+                btnStart.addEventListener('click', () => {
+                    console.log('TEST: Start button clicked!');
+                });
+            }
+        }, 100);
+
     } catch (error) {
         console.error('Game initialization failed:', error);
         // Показываем ошибку пользователю
@@ -911,6 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
                 <h2>Ошибка загрузки игры</h2>
                 <p>Не удалось инициализировать игру. Проверьте консоль браузера для подробностей.</p>
+                <p>Ошибка: ${error.message}</p>
                 <button onclick="location.reload()" style="padding: 10px 20px; margin-top: 10px;">Перезагрузить</button>
             </div>
         `;

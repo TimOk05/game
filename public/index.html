@@ -21,7 +21,7 @@
         <div class="menu-overlay">
             <h1 class="menu-title">Главное меню</h1>
             <div class="menu-buttons">
-                <button id="btnStart" class="btn primary">Начать игру</button>
+                <button id="btnStart" class="btn primary" onclick="testStartButton()">Начать игру</button>
                 <button id="btnContinue" class="btn" style="display:none">Продолжить</button>
                 <button id="btnMute" class="btn">Звук: вкл/выкл</button>
             </div>
@@ -79,6 +79,24 @@
     <script src="app.js" defer></script>
 
     <script>
+        // Простая функция для тестирования
+        function testStartButton() {
+            console.log('testStartButton called');
+            const menuRoot = document.getElementById('menu-root');
+            const appRoot = document.getElementById('app-root');
+
+            if (menuRoot && appRoot) {
+                menuRoot.style.display = 'none';
+                appRoot.style.display = 'grid';
+                console.log('Switched to game view');
+            } else {
+                console.error('Elements not found:', {
+                    menuRoot,
+                    appRoot
+                });
+            }
+        }
+
         // Регистрация Service Worker для PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
