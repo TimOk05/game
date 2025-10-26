@@ -9,13 +9,22 @@ let audioUnlocked = false;
 // Разблокировка аудио для мобильных устройств
 function unlockAudioOnce() {
     if (audioUnlocked) return;
+
+    console.log('Unlocking audio for mobile devices...');
+
     const tryPlay = async(a) => {
+        if (!a) return;
         try {
+            a.volume = 0.01; // Очень тихо для разблокировки
             await a.play();
             a.pause();
             a.currentTime = 0;
-        } catch {}
+            console.log('Audio unlocked successfully');
+        } catch (e) {
+            console.log('Audio unlock failed:', e.message);
+        }
     };
+
     tryPlay(menuBgm);
     tryPlay(gameBgm);
     audioUnlocked = true;
@@ -34,19 +43,28 @@ function initAudio() {
 // Управление музыкой
 function startMenuBgm() {
     if (menuBgm) {
+        console.log('Starting menu BGM...');
         gameBgm ? .pause();
-        menuBgm.play().catch(() => {});
+        menuBgm.volume = 0.3;
+        menuBgm.play().catch((e) => {
+            console.log('Menu BGM play failed:', e.message);
+        });
     }
 }
 
 function startGameBgm() {
     if (gameBgm) {
+        console.log('Starting game BGM...');
         menuBgm ? .pause();
-        gameBgm.play().catch(() => {});
+        gameBgm.volume = 0.2;
+        gameBgm.play().catch((e) => {
+            console.log('Game BGM play failed:', e.message);
+        });
     }
 }
 
 function stopAllBgm() {
+    console.log('Stopping all BGM...');
     menuBgm ? .pause();
     gameBgm ? .pause();
 }
@@ -270,6 +288,7 @@ class GameEngine {
 
     async loadNextEvent() {
         try {
+            console.log('Loading next event...');
             this.showLoading(true);
 
             const response = await fetch(`${this.apiBase}next.php`, {
@@ -282,14 +301,18 @@ class GameEngine {
                 })
             });
 
+            console.log('API response status:', response.status);
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
+            console.log('API response data:', result);
 
             if (result.success) {
                 this.currentEvent = result.data.event;
+                console.log('Current event loaded:', this.currentEvent);
                 // Не обновляем state автоматически, это делается при выборе
                 this.renderEvent();
             } else {
@@ -314,11 +337,16 @@ class GameEngine {
     // === Игровая логика ===
 
     async startGame() {
+        console.log('Starting game...');
+        console.log('Current state:', this.state);
+
         if (this.state.stats.hp <= 0) {
+            console.log('Player is dead, showing death screen');
             this.showDeathScreen();
             return;
         }
 
+        console.log('Loading next event...');
         await this.loadNextEvent();
     }
 
@@ -439,8 +467,11 @@ class GameEngine {
 
         if (btnStart) {
             btnStart.addEventListener('click', () => {
+                console.log('Start button clicked');
                 unlockAudioOnce();
-                gameBgm.load(); // предварительно открываем поток
+                if (gameBgm) {
+                    gameBgm.load(); // предварительно открываем поток
+                }
                 startMenuBgm();
                 this.showGame();
             });
@@ -448,8 +479,11 @@ class GameEngine {
 
         if (btnContinue) {
             btnContinue.addEventListener('click', () => {
+                console.log('Continue button clicked');
                 unlockAudioOnce();
-                gameBgm.load(); // предварительно открываем поток
+                if (gameBgm) {
+                    gameBgm.load(); // предварительно открываем поток
+                }
                 startGameBgm();
                 this.showGame();
             });
@@ -457,7 +491,8 @@ class GameEngine {
 
         if (btnMute) {
             btnMute.addEventListener('click', () => {
-                if (menuBgm ? .paused && gameBgm ? .paused) {
+                console.log('Mute button clicked');
+                if ((menuBgm ? .paused ? ? true) && (gameBgm ? .paused ? ? true)) {
                     startMenuBgm();
                     btnMute.textContent = 'Звук: вкл';
                 } else {
@@ -475,6 +510,8 @@ class GameEngine {
     }
 
     initMobileOptimizations() {
+        console.log('Initializing mobile optimizations...');
+
         // Пауза видео при неактивной вкладке
         const menuVideo = document.getElementById('menuVideo');
         document.addEventListener('visibilitychange', () => {
@@ -487,8 +524,10 @@ class GameEngine {
         });
 
         // Разблокировка аудио по тачу/клику
-        document.addEventListener('touchstart', unlockAudioOnce, { once: true, passive: true });
-        document.addEventListener('click', unlockAudioOnce, { once: true });
+        const unlockEvents = ['touchstart', 'click', 'touchend'];
+        unlockEvents.forEach(eventType => {
+            document.addEventListener(eventType, unlockAudioOnce, { once: true, passive: true });
+        });
 
         // Обработка клавиатуры для доступности
         document.addEventListener('keydown', (e) => {
@@ -503,6 +542,8 @@ class GameEngine {
                 }
             }
         });
+
+        console.log('Mobile optimizations initialized');
     }
 
     showMenu() {
@@ -533,6 +574,9 @@ class GameEngine {
         if (deathScreen) deathScreen.classList.add('hidden');
 
         startGameBgm();
+
+        // Запускаем игру после переключения интерфейса
+        this.startGame();
     }
 
     updateUI() {
