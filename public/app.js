@@ -520,7 +520,7 @@ class GameEngine {
     }
 
     updateUI() {
-        // Обновляем статистики в боковой панели
+        // Обновляем статистики в HUD
         document.getElementById('stat-hp').textContent = this.state.stats.hp;
         document.getElementById('stat-damage').textContent = this.state.stats.damage;
         document.getElementById('stat-fame').textContent = this.state.stats.fame;
@@ -534,9 +534,6 @@ class GameEngine {
 
         document.getElementById('current-location').textContent = this.state.location;
         document.getElementById('turn-number').textContent = this.state.turn;
-
-        // Обновляем верхнюю панель характеристик
-        this.updateTopStatsPanel();
 
         // Обновляем инвентарь
         this.updateInventory();
@@ -552,7 +549,6 @@ class GameEngine {
         }
 
         // Цветовая индикация долга
-        const debtElement = document.getElementById('stat-debt');
         if (debtElement) {
             const debt = this.state.stats.debt || 0;
             if (debt > 0) {
@@ -564,14 +560,12 @@ class GameEngine {
     }
 
     updateInventory() {
-        const container = document.getElementById('inventory-items');
+        const container = document.getElementById('invList');
 
         if (!this.state.stats.items || this.state.stats.items.length === 0) {
-            container.innerHTML = '<div class="inventory-empty">Пусто</div>';
+            container.textContent = 'Пусто';
         } else {
-            container.innerHTML = this.state.stats.items
-                .map(item => `<div class="inventory-item">${item}</div>`)
-                .join('');
+            container.textContent = this.state.stats.items.join(', ');
         }
     }
 

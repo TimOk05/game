@@ -33,10 +33,15 @@
     <div id="app-root" class="app-root" style="display:none">
         <header class="hud">
             <div class="stats">
-                <span>HP: <b id="statHp">—</b></span>
-                <span>Урон: <b id="statDmg">—</b></span>
-                <span>Слава: <b id="statFame">—</b></span>
-                <span>Золото: <b id="statGold">—</b></span>
+                <span>HP: <b id="stat-hp">—</b></span>
+                <span>Урон: <b id="stat-damage">—</b></span>
+                <span>Слава: <b id="stat-fame">—</b></span>
+                <span>Золото: <b id="stat-gold">—</b></span>
+                <span>Долг: <b id="stat-debt">—</b></span>
+            </div>
+            <div class="location-info">
+                <span>Локация: <b id="current-location">—</b></span>
+                <span class="turn-counter">Ход: <b id="turn-number">—</b></span>
             </div>
             <div class="inv">
                 Инвентарь: <span id="invList">—</span>
@@ -45,8 +50,30 @@
         </header>
 
         <main class="card" id="card">
-            <!-- сюда рендерится текущая карточка события -->
+            <div class="event-image" id="event-image">🎭</div>
+            <h2 id="event-title">Загрузка...</h2>
+            <p id="event-text">Пожалуйста, подождите...</p>
+            <div class="choices" id="choices-container">
+                <!-- сюда рендерится текущая карточка события -->
+            </div>
         </main>
+    </div>
+
+    <!-- Экран загрузки -->
+    <div id="loading-screen" class="loading-screen hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Загрузка события...</p>
+        </div>
+    </div>
+
+    <!-- Экран смерти -->
+    <div id="death-screen" class="death-screen hidden">
+        <div class="death-content">
+            <h2>💀 Игра окончена</h2>
+            <p>Ваше приключение подошло к концу. Попробуйте ещё раз!</p>
+            <button id="restart-btn" class="btn primary">🔄 Начать заново</button>
+        </div>
     </div>
 
     <script src="/app.js" defer></script>
