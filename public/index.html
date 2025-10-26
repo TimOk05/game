@@ -21,9 +21,9 @@
         <div class="menu-overlay">
             <h1 class="menu-title">Главное меню</h1>
             <div class="menu-buttons">
-                <button id="btnStart" class="btn primary">Начать игру</button>
+                <button id="btnStart" class="btn primary" onclick="console.log('Button clicked!'); testStartGame();">Начать игру</button>
                 <button id="btnContinue" class="btn" style="display:none">Продолжить</button>
-                <button id="btnMute" class="btn">Звук: вкл/выкл</button>
+                <button id="btnMute" class="btn" onclick="testMusic()">Звук: вкл/выкл</button>
             </div>
             <p class="menu-hint">Нажмите «Начать игру», чтобы включить звук и начать пролог.</p>
         </div>
@@ -79,6 +79,125 @@
     <script src="app.js" defer></script>
 
     <script>
+        // Простая функция для тестирования
+        function testStartGame() {
+            console.log('testStartGame called');
+
+            // Переключаем интерфейс
+            const menuRoot = document.getElementById('menu-root');
+            const appRoot = document.getElementById('app-root');
+
+            if (menuRoot && appRoot) {
+                menuRoot.style.display = 'none';
+                appRoot.style.display = 'grid';
+                console.log('Switched to game view');
+
+                // Загружаем первое событие
+                loadFirstEvent();
+            } else {
+                console.error('Elements not found:', {
+                    menuRoot,
+                    appRoot
+                });
+            }
+        }
+
+        // Простая функция загрузки первого события
+        async function loadFirstEvent() {
+            try {
+                console.log('Loading first event...');
+
+                const testState = {
+                    location: "main",
+                    turn: 1,
+                    seenIds: [],
+                    cooldowns: {},
+                    stats: {
+                        hp: 20,
+                        damage: 3,
+                        fame: 0,
+                        gold: 10,
+                        items: []
+                    }
+                };
+
+                const response = await fetch('api/next.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        state: testState
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        const event = data.data.event;
+                        console.log('Event loaded:', event);
+
+                        // Обновляем интерфейс
+                        document.getElementById('event-title').textContent = event.title;
+                        document.getElementById('event-text').textContent = event.text;
+                        document.getElementById('event-image').innerHTML = `<img src="${event.image}" alt="${event.title}" style="max-width: 100%; height: auto;">`;
+
+                        // Создаем кнопки выбора
+                        const choicesContainer = document.getElementById('choices-container');
+                        choicesContainer.innerHTML = '';
+
+                        event.choices.forEach((choice, index) => {
+                            const button = document.createElement('button');
+                            button.className = 'choice-btn';
+                            button.textContent = choice.label;
+                            button.onclick = () => {
+                                console.log('Choice clicked:', choice.label);
+                                // Здесь можно добавить логику обработки выбора
+                            };
+                            choicesContainer.appendChild(button);
+                        });
+
+                        console.log('Event rendered successfully');
+                    } else {
+                        console.error('API error:', data.error);
+                    }
+                } else {
+                    console.error('HTTP error:', response.status);
+                }
+            } catch (error) {
+                console.error('Error loading event:', error);
+            }
+        }
+
+        // Простая функция для тестирования музыки
+        function testMusic() {
+            console.log('testMusic called');
+
+            try {
+                const audio = new Audio('assets/media/menu-campfire.mp3');
+                audio.volume = 0.3;
+                audio.loop = true;
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('Music started successfully');
+                        document.getElementById('btnMute').textContent = 'Звук: выкл';
+                        document.getElementById('btnMute').onclick = () => {
+                            audio.pause();
+                            document.getElementById('btnMute').textContent = 'Звук: вкл';
+                            document.getElementById('btnMute').onclick = testMusic;
+                        };
+                    }).catch((e) => {
+                        console.log('Music play failed:', e.message);
+                        alert('Не удалось воспроизвести музыку. Попробуйте нажать на страницу перед воспроизведением.');
+                    });
+                }
+            } catch (error) {
+                console.error('Error creating audio:', error);
+            }
+        }
+
         // Регистрация Service Worker для PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
