@@ -23,8 +23,8 @@ function unlockAudioOnce() {
 
 // Инициализация аудио
 function initAudio() {
-    menuBgm = new Audio('/assets/media/menu-campfire.mp3');
-    gameBgm = new Audio('/assets/media/game-ambient.mp3');
+    menuBgm = new Audio('assets/media/menu-campfire.mp3');
+    gameBgm = new Audio('assets/media/game-ambient.mp3');
     menuBgm.loop = true;
     gameBgm.loop = true;
     menuBgm.volume = 0.3;
@@ -53,7 +53,7 @@ function stopAllBgm() {
 
 class GameEngine {
     constructor() {
-        this.apiBase = '/api/';
+        this.apiBase = 'api/';
         this.state = this.loadState();
         this.currentEvent = null;
         this.init();
@@ -62,7 +62,7 @@ class GameEngine {
     init() {
         this.bindEvents();
         this.updateUI();
-        this.startGame();
+        this.showMenu(); // Показываем меню вместо запуска игры
         this.initMobileOptimizations();
     }
 
@@ -507,15 +507,31 @@ class GameEngine {
 
     showMenu() {
         this.mode = 'menu';
-        document.getElementById('menu-root').style.display = 'grid';
-        document.getElementById('app-root').style.display = 'none';
+        const menuRoot = document.getElementById('menu-root');
+        const appRoot = document.getElementById('app-root');
+        const loadingScreen = document.getElementById('loading-screen');
+        const deathScreen = document.getElementById('death-screen');
+
+        if (menuRoot) menuRoot.style.display = 'grid';
+        if (appRoot) appRoot.style.display = 'none';
+        if (loadingScreen) loadingScreen.classList.add('hidden');
+        if (deathScreen) deathScreen.classList.add('hidden');
+
         startMenuBgm();
     }
 
     showGame() {
         this.mode = 'game';
-        document.getElementById('menu-root').style.display = 'none';
-        document.getElementById('app-root').style.display = 'grid';
+        const menuRoot = document.getElementById('menu-root');
+        const appRoot = document.getElementById('app-root');
+        const loadingScreen = document.getElementById('loading-screen');
+        const deathScreen = document.getElementById('death-screen');
+
+        if (menuRoot) menuRoot.style.display = 'none';
+        if (appRoot) appRoot.style.display = 'grid';
+        if (loadingScreen) loadingScreen.classList.add('hidden');
+        if (deathScreen) deathScreen.classList.add('hidden');
+
         startGameBgm();
     }
 
@@ -641,19 +657,23 @@ class GameEngine {
 
     showLoading(show) {
         const loadingScreen = document.getElementById('loading-screen');
-        if (show) {
-            loadingScreen.classList.remove('hidden');
-        } else {
-            loadingScreen.classList.add('hidden');
+        if (loadingScreen) {
+            if (show) {
+                loadingScreen.classList.remove('hidden');
+            } else {
+                loadingScreen.classList.add('hidden');
+            }
         }
     }
 
     showDeathScreen(show = true) {
         const deathScreen = document.getElementById('death-screen');
-        if (show) {
-            deathScreen.classList.remove('hidden');
-        } else {
-            deathScreen.classList.add('hidden');
+        if (deathScreen) {
+            if (show) {
+                deathScreen.classList.remove('hidden');
+            } else {
+                deathScreen.classList.add('hidden');
+            }
         }
     }
 
@@ -757,6 +777,20 @@ setVhVar();
 
 // Инициализация игры
 document.addEventListener('DOMContentLoaded', () => {
-    initAudio();
-    game = new GameEngine();
+    console.log('DOM loaded, initializing game...');
+    try {
+        initAudio();
+        game = new GameEngine();
+        console.log('Game initialized successfully');
+    } catch (error) {
+        console.error('Game initialization failed:', error);
+        // Показываем ошибку пользователю
+        document.body.innerHTML = `
+            <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+                <h2>Ошибка загрузки игры</h2>
+                <p>Не удалось инициализировать игру. Проверьте консоль браузера для подробностей.</p>
+                <button onclick="location.reload()" style="padding: 10px 20px; margin-top: 10px;">Перезагрузить</button>
+            </div>
+        `;
+    }
 });

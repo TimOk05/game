@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест мобильной версии</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Тест мобильной версии игры</h1>
+
+    <div class="test-section">
+        <h2>1. Проверка файлов</h2>
+        <button class="test-button" onclick="testFiles()">Проверить файлы</button>
+        <div id="files-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Проверка CSS</h2>
+        <button class="test-button" onclick="testCSS()">Проверить CSS</button>
+        <div id="css-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Проверка JavaScript</h2>
+        <button class="test-button" onclick="testJS()">Проверить JS</button>
+        <div id="js-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Переход к игре</h2>
+        <button class="test-button" onclick="openGame()">Открыть игру</button>
+    </div>
+
+    <script>
+        async function testFiles() {
+            const result = document.getElementById('files-result');
+            result.style.display = 'block';
+            result.className = 'result';
+            result.innerHTML = 'Проверка файлов...';
+
+            const files = ['app.css', 'app.js', 'assets/media/menu-campfire.mp4'];
+            const results = [];
+
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, {
+                        method: 'HEAD'
+                    });
+                    if (response.ok) {
+                        results.push(`✅ ${file} - OK`);
+                    } else {
+                        results.push(`❌ ${file} - ${response.status}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${file} - ${error.message}`);
+                }
+            }
+
+            result.innerHTML = results.join('<br>');
+            if (results.every(r => r.includes('✅'))) {
+                result.className = 'result success';
+            } else {
+                result.className = 'result error';
+            }
+        }
+
+        function testCSS() {
+            const result = document.getElementById('css-result');
+            result.style.display = 'block';
+
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'app.css';
+
+            link.onload = () => {
+                result.className = 'result success';
+                result.innerHTML = '<strong>✅ CSS загружен успешно!</strong>';
+            };
+
+            link.onerror = () => {
+                result.className = 'result error';
+                result.innerHTML = '<strong>❌ Ошибка загрузки CSS</strong>';
+            };
+
+            document.head.appendChild(link);
+        }
+
+        function testJS() {
+            const result = document.getElementById('js-result');
+            result.style.display = 'block';
+            result.className = 'result';
+            result.innerHTML = 'Проверка JavaScript...';
+
+            const script = document.createElement('script');
+            script.src = 'app.js';
+
+            script.onload = () => {
+                result.className = 'result success';
+                result.innerHTML = '<strong>✅ JavaScript загружен успешно!</strong>';
+            };
+
+            script.onerror = () => {
+                result.className = 'result error';
+                result.innerHTML = '<strong>❌ Ошибка загрузки JavaScript</strong>';
+            };
+
+            document.head.appendChild(script);
+        }
+
+        function openGame() {
+            window.open('index.html', '_blank');
+        }
+    </script>
+</body>
+
+</html>
